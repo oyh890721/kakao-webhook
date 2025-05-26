@@ -18,6 +18,7 @@
   "homepage": "https://github.com/oyh890721/kakao-webhook#readme",
   "description": "",
   "dependencies": {
+    "axios": "^1.9.0",
     "express": "^5.1.0"
   }
 }
