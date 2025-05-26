@@ -1,34 +1,62 @@
 const express = require('express');
+const axios = require('axios');
 const app = express();
-
 app.use(express.json());
 
-// 기본 주소에 응답 (브라우저에서 확인 가능)
-app.get('/', (req, res) => {
-  res.send('Webhook is alive!');
-});
+app.post('/webhook', async (req, res) => {
+  const userMessage = req.body.userRequest.utterance;
 
-// Webhook 주소 테스트 (선택)
-app.post('/webhook', (req, res) => {
-  const { user_key, message } = req.body;
-  console.log('📩 받은 메시지:', message);
-  res.json({
-    version: "2.0",
-    template: {
-      outputs: [
-        {
-          simpleText: {
-            text: `✅ 메시지 잘 받았어요: ${message}`
-          }
+  if (userMessage.includes("오늘 일정")) {
+    try {
+      const response = await axios.get('https://script.google.com/macros/s/AKfycbz_tEL0igOp9-sTRnl7KhIyaLnMdbiDjgayywzlNnakwXgWVojCG6JTvUPKy93Hfu5CEg/exec');
+      const schedule = response.data;
+
+      return res.json({
+        version: "2.0",
+        template: {
+          outputs: [
+            {
+              simpleText: {
+                text: `📅 오늘의 주요활동: ${schedule}`
+              }
+            }
+          ]
         }
-      ]
+      });
+    } catch (error) {
+      console.error(error);
+      return res.json({
+        version: "2.0",
+        template: {
+          outputs: [
+            {
+              simpleText: {
+                text: "일정을 불러오는 데 문제가 발생했습니다."
+              }
+            }
+          ]
+        }
+      });
     }
-  });
+  } else {
+    return res.json({
+      version: "2.0",
+      template: {
+        outputs: [
+          {
+            simpleText: {
+              text: "원하시는 정보를 말씀해주세요."
+            }
+          }
+        ]
+      }
+    });
+  }
 });
 
-// Render 환경에서 필수: process.env.PORT 사용
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
   console.log(`✅ 서버가 포트 ${PORT}에서 실행 중입니다`);
 });
+
 
