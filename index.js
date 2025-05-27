@@ -4,46 +4,37 @@ const app = express();
 
 app.use(express.json());
 
-app.post('/webhook', async (req, res) => {
+app.post('/webhook', (req, res) => {
   const userMessage = req.body?.userRequest?.utterance || "";
 
   if (userMessage.includes("일정")) {
-    try {
-      const response = await axios.get('https://script.google.com/macros/s/AKfycbx7dRUDvMxakVlveD-PPOWfGbKi6FpKXLm5hkjmO7QgK_0dcJ6t1hUpyM6hpz4wxtA_hw/exec');
-
-      const schedule = typeof response.data === 'string'
-        ? response.data
-        : JSON.stringify(response.data);
-
-      return res.json({
-        version: "2.0",
-        template: {
-          outputs: [
-            {
-              simpleText: {
-                text: schedule
-              }
+    // ✅ 먼저 응답을 전송 (타임아웃 방지)
+    res.json({
+      version: "2.0",
+      template: {
+        outputs: [
+          {
+            simpleText: {
+              text: "📅 일정을 불러오는 중입니다..."
             }
-          ]
-        }
+          }
+        ]
+      }
+    });
+
+    // ✅ Google Apps Script 호출은 백그라운드에서 비동기 실행
+    axios.get('https://script.google.com/macros/s/AKfycbx7dRUDvMxakVlveD-PPOWfGbKi6FpKXLm5hkjmO7QgK_0dcJ6t1hUpyM6hpz4wxtA_hw/exec')
+      .then(response => {
+        console.log("📥 가져온 일정:", response.data);
+        // 여기서 실제로 가져온 데이터를 저장하거나 활용할 수도 있음
+      })
+      .catch(error => {
+        console.error("❌ Google Apps Script 요청 실패:", error.message);
       });
-    } catch (error) {
-      console.error("❌ 오류 발생:", error.message);
-      return res.json({
-        version: "2.0",
-        template: {
-          outputs: [
-            {
-              simpleText: {
-                text: "❌ 일정을 불러오는 데 문제가 발생했습니다."
-              }
-            }
-          ]
-        }
-      });
-    }
+
   } else {
-    return res.json({
+    // 일정이 아닌 경우 일반 응답
+    res.json({
       version: "2.0",
       template: {
         outputs: [
