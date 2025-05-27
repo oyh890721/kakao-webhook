@@ -5,13 +5,13 @@ const app = express();
 app.use(express.json());
 
 app.post('/webhook', async (req, res) => {
-  const userMessage = req.body.userRequest.utterance;
+  const userMessage = req.body?.userRequest?.utterance || "";
 
   if (userMessage.includes("일정")) {
     try {
       const response = await axios.get('https://script.google.com/macros/s/AKfycbx7dRUDvMxakVlveD-PPOWfGbKi6FpKXLm5hkjmO7QgK_0dcJ6t1hUpyM6hpz4wxtA_hw/exec');
 
-      const schedule = String(response.data || "📅 오늘 일정이 없습니다.");
+      const schedule = String(response.data || "📅 오늘 일정이 없습니다.").replace(/[\r\n]+/g, ' ');
 
       return res.json({
         version: "2.0",
@@ -60,4 +60,3 @@ const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
   console.log(`✅ 서버가 포트 ${PORT}에서 실행 중입니다`);
 });
-
