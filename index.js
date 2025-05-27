@@ -11,7 +11,9 @@ app.post('/webhook', async (req, res) => {
     try {
       const response = await axios.get('https://script.google.com/macros/s/AKfycbx7dRUDvMxakVlveD-PPOWfGbKi6FpKXLm5hkjmO7QgK_0dcJ6t1hUpyM6hpz4wxtA_hw/exec');
 
-      const schedule = String(response.data || "📅 오늘 일정이 없습니다.").replace(/[\r\n]+/g, ' ');
+      const schedule = typeof response.data === 'string'
+        ? response.data
+        : JSON.stringify(response.data);
 
       return res.json({
         version: "2.0",
